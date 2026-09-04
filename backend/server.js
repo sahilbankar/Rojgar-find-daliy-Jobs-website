@@ -1,7 +1,7 @@
 const app = require('./app');
 const connectDB = require('./config/database');
 
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT, 10) || 5000;
 
 // Connect to MongoDB and start listening
 connectDB()
