@@ -51,7 +51,7 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean, _retryCount?: number };
 
     if (error.response) {
       const status = error.response.status;
@@ -139,6 +139,18 @@ api.interceptors.response.use(
         }
       } else if (status === 403) {
         console.error('API Error (403): Access Forbidden');
+      } else if (status === 503 || status === 502) {
+        console.error(`API Error (${status}): Server is waking up. Retrying...`);
+        originalRequest._retryCount = originalRequest._retryCount || 0;
+        if (originalRequest._retryCount < 5) { // Retry up to 5 times
+          originalRequest._retryCount++;
+          // Wait longer for each retry: 3s, 6s, 9s, 12s, 15s
+          const delay = originalRequest._retryCount * 3000;
+          return new Promise(resolve => setTimeout(resolve, delay))
+            .then(() => api(originalRequest));
+        } else {
+          console.error('API Error: Maximum retries reached. Server is still unavailable.');
+        }
       } else if (status >= 500) {
         console.error('API Error (500+): Internal Server Error');
       }
