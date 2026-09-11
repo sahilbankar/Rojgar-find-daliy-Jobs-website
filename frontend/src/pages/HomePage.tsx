@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ShieldCheck, ArrowRight, Wrench, Truck, Monitor, HeartPulse, Briefcase, ChevronDown, DollarSign, Building } from 'lucide-react';
+import { Search, MapPin, ShieldCheck, ArrowRight, Wrench, Truck, Monitor, HeartPulse, Briefcase, ChevronDown, DollarSign, Building, User as UserIcon } from 'lucide-react';
 import { Job, JobCategory } from '../types';
-import { jobsAPI } from '../services/jobs';
+import { jobsAPI } from '../services/jobs.service';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -241,16 +241,42 @@ export const HomePage: React.FC = () => {
               {latestJobs.map((job) => (
                 <div key={job._id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{job.title}</h3>
-                      <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full shrink-0">
-                        {job.jobType || 'Full-time'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600 space-x-2">
-                      <Building className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="font-medium truncate">{job.companyName || 'Company'}</span>
+                    <div className="flex items-start gap-3">
+                      {job.employerId?.logoUrl ? (
+                        <img 
+                          src={job.employerId.logoUrl.startsWith('http') ? job.employerId.logoUrl : `http://localhost:5000${job.employerId.logoUrl}`} 
+                          alt={`${job.companyName || 'Company'} logo`} 
+                          className="w-12 h-12 rounded-xl object-cover border border-gray-100 shrink-0 bg-white"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                          <Building className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-bold text-lg text-gray-900 line-clamp-1 truncate">{job.title}</h3>
+                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full shrink-0">
+                            {job.jobType || 'Full-time'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col space-y-0.5 mt-1">
+                          <Link 
+                            to={`/employers/${job.employerId?._id || job.employerId}`}
+                            className="flex items-center text-xs text-gray-500 hover:text-blue-600 transition-colors space-x-1.5 group w-fit"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Building className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 shrink-0" />
+                            <span className="font-medium truncate">{job.companyName || 'Company'}</span>
+                          </Link>
+                          {(job as any).employerName && (
+                            <div className="flex items-center text-[10px] text-gray-400 space-x-1.5">
+                              <UserIcon className="w-3 h-3 text-gray-300 shrink-0" />
+                              <span className="font-medium truncate">Posted by: {(job as any).employerName}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">

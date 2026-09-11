@@ -15,13 +15,14 @@ import {
   X,
   Loader2,
   UploadCloud,
-  FileText
+  FileText,
+  User as UserIcon
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Job } from '../types';
-import { jobsAPI } from '../services/jobs';
-import { applicationsAPI } from '../services/applications';
-import { usersAPI } from '../services/users';
+import { jobsAPI } from '../services/jobs.service';
+import { applicationsAPI } from '../services/applications.service';
+import { usersAPI } from '../services/users.service';
 
 export const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -286,26 +287,50 @@ export const JobDetailPage: React.FC = () => {
         
         {/* Header: Title, Badges & Company */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pb-6 border-b border-gray-100">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
-                <Tag className="w-3 h-3" />
-                <span>{categoryName}</span>
-              </span>
-              <span className="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full">
-                <Briefcase className="w-3 h-3" />
-                <span>{job?.jobType || 'Full-time'}</span>
-              </span>
+          <div className="flex items-start gap-5">
+            {job?.employerId?.logoUrl ? (
+              <img 
+                src={job.employerId.logoUrl.startsWith('http') ? job.employerId.logoUrl : `http://localhost:5000${job.employerId.logoUrl}`} 
+                alt={`${companyName} logo`} 
+                className="w-16 h-16 rounded-xl object-cover border border-gray-100 shrink-0 bg-white shadow-sm"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 shadow-sm">
+                <Building className="w-8 h-8 text-gray-400" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
+                  <Tag className="w-3 h-3" />
+                  <span>{categoryName}</span>
+                </span>
+                <span className="inline-flex items-center space-x-1 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full">
+                  <Briefcase className="w-3 h-3" />
+                  <span>{job?.jobType || 'Full-time'}</span>
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
+                {job?.title || "Job Title"}
+              </h1>
+
+              <div className="flex flex-col space-y-1 mt-1">
+                <Link 
+                  to={`/employers/${job.employerId?._id || job.employerId}`}
+                  className="text-base font-semibold text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-2 w-fit group"
+                >
+                  <Building className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                  <span>{companyName}</span>
+                </Link>
+                {(job as any).employerName && (
+                  <p className="text-sm font-medium text-gray-500 flex items-center space-x-2">
+                    <UserIcon className="w-4 h-4 text-gray-400" />
+                    <span>Posted by: {(job as any).employerName}</span>
+                  </p>
+                )}
+              </div>
             </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
-              {job?.title || "Job Title"}
-            </h1>
-
-            <p className="text-base font-semibold text-gray-600 flex items-center space-x-2">
-              <Building className="w-4 h-4 text-gray-400" />
-              <span>{companyName}</span>
-            </p>
           </div>
 
           <div className="sm:text-right bg-blue-50/60 sm:bg-transparent p-4 sm:p-0 rounded-2xl w-full sm:w-auto">

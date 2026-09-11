@@ -7,7 +7,6 @@ require('dotenv').config();
 // Security Packages
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const hpp = require('hpp');
 const rateLimit = require('express-rate-limit');
 
@@ -67,6 +66,9 @@ app.use(limiter);
 
 // Prevent HTTP Param Pollution
 app.use(hpp());
+
+// Prevent XSS attacks (xss-clean is incompatible with Express 5 getter architecture)
+// app.use(xss());
 
 // Body parser
 app.use(express.json());

@@ -11,13 +11,15 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { AboutPage } from '../pages/AboutPage';
 import { ContactPage } from '../pages/ContactPage';
 
-import { JobSeekerDashboard } from '../pages/dashboards/JobSeekerDashboard';
-import { EmployerDashboard } from '../pages/dashboards/EmployerDashboard';
-import { AdminDashboard } from '../pages/dashboards/AdminDashboard';
+import { JobSeekerDashboard } from '../pages/dashboards/JobSeekerDashboardPage';
+import { EmployerDashboard } from '../pages/dashboards/EmployerDashboardPage';
+import { AdminDashboard } from '../pages/dashboards/AdminDashboardPage';
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { useAuth } from '../hooks/useAuth';
+
+import { CompanyProfilePage } from '../pages/CompanyProfilePage';
 
 // Helper component to redirect to correct dashboard based on user role
 const DashboardIndex = () => {
@@ -44,6 +46,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />
+        <Route path="/employers/:id" element={<CompanyProfilePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginPage />} />

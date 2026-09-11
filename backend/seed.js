@@ -12,12 +12,12 @@ const Job = require('./models/Job');
 const Application = require('./models/Application');
 const Category = require('./models/Category');
 
+const connectDB = require('./config/database');
+
 const seedData = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000
-    });
-    console.log('Connected to MongoDB. Clearing existing database collections...');
+    await connectDB();
+    console.log('Clearing existing database collections...');
 
     await User.deleteMany();
     await Employer.deleteMany();

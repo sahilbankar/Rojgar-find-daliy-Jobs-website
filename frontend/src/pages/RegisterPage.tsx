@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Briefcase, Lock, Mail, User as UserIcon, Phone, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types';
-import { authAPI } from '../services/auth';
+import { authAPI } from '../services/auth.service';
 
 export const RegisterPage: React.FC = () => {
   const [searchParams] = useSearchParams();

@@ -17,11 +17,12 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Bookmark
+  Bookmark,
+  User as UserIcon
 } from 'lucide-react';
 import { Job, JobCategory } from '../types';
-import { jobsAPI, GetJobsParams } from '../services/jobs';
-import { usersAPI } from '../services/users';
+import { jobsAPI, GetJobsParams } from '../services/jobs.service';
+import { usersAPI } from '../services/users.service';
 import { useAuth } from '../hooks/useAuth';
 
 export const JobsPage: React.FC = () => {
@@ -402,27 +403,52 @@ export const JobsPage: React.FC = () => {
                     className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all space-y-4 group"
                   >
                     {/* Header: Title & Badges */}
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-md flex items-center space-x-1">
-                            <Tag className="w-3 h-3" />
-                            <span>{categoryName}</span>
-                          </span>
-                          <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-md flex items-center space-x-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>Active Job</span>
-                          </span>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        {job.employerId?.logoUrl ? (
+                          <img 
+                            src={job.employerId.logoUrl.startsWith('http') ? job.employerId.logoUrl : `http://localhost:5000${job.employerId.logoUrl}`} 
+                            alt={`${companyName} logo`} 
+                            className="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0 bg-white shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 shadow-sm">
+                            <Building className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-md flex items-center space-x-1">
+                              <Tag className="w-3 h-3" />
+                              <span>{categoryName}</span>
+                            </span>
+                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-md flex items-center space-x-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Active Job</span>
+                            </span>
+                          </div>
+
+                          <h2 className="text-xl font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            {job.title}
+                          </h2>
+
+                          <div className="flex flex-col space-y-1 mt-1">
+                            <Link 
+                              to={`/employers/${job.employerId?._id || job.employerId}`}
+                              className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-1.5 group w-fit"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Building className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                              <span>{companyName}</span>
+                            </Link>
+                            {(job as any).employerName && (
+                              <p className="text-[11px] font-medium text-gray-500 flex items-center space-x-1.5">
+                                <UserIcon className="w-3.5 h-3.5 text-gray-400" />
+                                <span>Posted by: {(job as any).employerName}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
-
-                        <h2 className="text-xl font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {job.title}
-                        </h2>
-
-                        <p className="text-sm font-semibold text-gray-600 flex items-center space-x-1.5 mt-1">
-                          <Building className="w-4 h-4 text-gray-400" />
-                          <span>{companyName}</span>
-                        </p>
                       </div>
 
                       <div className="flex items-center space-x-2 self-start sm:self-center">

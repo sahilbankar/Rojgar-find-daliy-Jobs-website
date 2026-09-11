@@ -22,15 +22,35 @@ exports.createJob = async (req, res, next) => {
     req.body.employerId = employerProfile._id;
     req.body.companyName = req.body.companyName || employerProfile.companyName || req.user.name || 'Company';
 
-    // Populate category name if categoryId is provided
+    // Populate category name and ensure categoryId is a valid ObjectId
     if (req.body.categoryId) {
       try {
-        const catDoc = await Category.findById(req.body.categoryId);
-        if (catDoc) {
-          req.body.category = catDoc.name;
+        let catId = req.body.categoryId;
+        if (catId && typeof catId === 'object' && catId._id) {
+          catId = catId._id;
         }
+        let catDoc = null;
+        if (mongoose.Types.ObjectId.isValid(catId)) {
+          catDoc = await Category.findById(catId);
+        }
+        if (!catDoc) {
+          const catStr = String(catId).trim();
+          catDoc = await Category.findOne({
+            $or: [
+              { name: new RegExp('^' + catStr + '$', 'i') },
+              { slug: catStr.toLowerCase() }
+            ]
+          });
+          if (!catDoc) {
+            const formattedName = catStr.charAt(0).toUpperCase() + catStr.slice(1);
+            const formattedSlug = catStr.toLowerCase().replace(/\s+/g, '-');
+            catDoc = await Category.create({ name: formattedName, slug: formattedSlug });
+          }
+        }
+        req.body.categoryId = catDoc._id;
+        req.body.category = catDoc.name;
       } catch (catErr) {
-        console.warn('Category lookup note:', catErr.message);
+        console.warn('Category resolution note:', catErr.message);
       }
     }
 
@@ -189,7 +209,14 @@ exports.getJobs = async (req, res, next) => {
     const totalPages = Math.ceil(total / limit) || 1;
 
     const jobs = await Job.find(mongoQuery)
-      .populate('employerId', 'companyName logoUrl')
+      .populate({
+        path: 'employerId',
+        select: 'companyName logoUrl userId',
+        populate: {
+          path: 'userId',
+          select: 'name'
+        }
+      })
       .populate('categoryId', 'name slug')
       .sort(sortOption)
       .skip(skip)
@@ -200,7 +227,8 @@ exports.getJobs = async (req, res, next) => {
       const plain = j.toObject();
       return {
         ...plain,
-        companyName: plain.companyName || plain.employerId?.companyName || 'Company',
+        employerName: plain.employerId?.userId?.name || '',
+        companyName: plain.employerId?.companyName || plain.companyName || 'Company',
         category: plain.category || plain.categoryId?.name || 'General',
         jobType: plain.jobType || 'Full-time',
         experienceYears: plain.experienceYears !== undefined ? plain.experienceYears : (plain.experience ?? 'Fresher'),
@@ -238,7 +266,14 @@ exports.getJob = async (req, res, next) => {
     }
 
     const job = await Job.findById(id)
-      .populate('employerId', 'companyName logoUrl location companyDescription')
+      .populate({
+        path: 'employerId',
+        select: 'companyName logoUrl location companyDescription userId',
+        populate: {
+          path: 'userId',
+          select: 'name'
+        }
+      })
       .populate('categoryId', 'name slug')
       .populate('applications');
 
@@ -256,7 +291,8 @@ exports.getJob = async (req, res, next) => {
     }
 
     const jobData = job.toObject();
-    jobData.companyName = jobData.companyName || jobData.employerId?.companyName || 'Company';
+    jobData.employerName = jobData.employerId?.userId?.name || '';
+    jobData.companyName = jobData.employerId?.companyName || jobData.companyName || 'Company';
     jobData.category = jobData.category || jobData.categoryId?.name || 'General';
     jobData.totalVacancies = totalVacancies;
     jobData.vacancies = totalVacancies;
@@ -287,6 +323,59 @@ exports.updateJob = async (req, res, next) => {
     // Make sure user is job owner or admin
     if (job.employerId.toString() !== employerProfile?._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'User not authorized to update this job' });
+    }
+
+    // Populate category name and ensure categoryId is a valid ObjectId
+    if (req.body.categoryId) {
+      try {
+        let catId = req.body.categoryId;
+        if (catId && typeof catId === 'object' && catId._id) {
+          catId = catId._id;
+        }
+        let catDoc = null;
+        if (mongoose.Types.ObjectId.isValid(catId)) {
+          catDoc = await Category.findById(catId);
+        }
+        if (!catDoc) {
+          const catStr = String(catId).trim();
+          catDoc = await Category.findOne({
+            $or: [
+              { name: new RegExp('^' + catStr + '$', 'i') },
+              { slug: catStr.toLowerCase() }
+            ]
+          });
+          if (!catDoc) {
+            const formattedName = catStr.charAt(0).toUpperCase() + catStr.slice(1);
+            const formattedSlug = catStr.toLowerCase().replace(/\s+/g, '-');
+            catDoc = await Category.create({ name: formattedName, slug: formattedSlug });
+          }
+        }
+        req.body.categoryId = catDoc._id;
+        req.body.category = catDoc.name;
+      } catch (catErr) {
+        console.warn('Category resolution note:', catErr.message);
+      }
+    }
+
+    // Parse salaryMin and salaryMax from fields if present
+    if (req.body.minSalary !== undefined) {
+      req.body.salaryMin = Number(req.body.minSalary) || 0;
+    }
+    if (req.body.maxSalary !== undefined) {
+      req.body.salaryMax = Number(req.body.maxSalary) || 0;
+    }
+
+    // Normalize requirements if passed as a string
+    if (typeof req.body.requirements === 'string') {
+      if (req.body.requirements.includes('\n')) {
+        req.body.requirements = req.body.requirements.split('\n').map(r => r.trim()).filter(Boolean);
+      } else if (req.body.requirements.includes(',')) {
+        req.body.requirements = req.body.requirements.split(',').map(r => r.trim()).filter(Boolean);
+      } else if (req.body.requirements.trim()) {
+        req.body.requirements = [req.body.requirements.trim()];
+      } else {
+        req.body.requirements = [];
+      }
     }
 
     job = await Job.findByIdAndUpdate(req.params.id, req.body, {

@@ -164,7 +164,14 @@ exports.getSavedJobs = async (req, res, next) => {
     const user = await User.findById(req.user.id).populate({
       path: 'savedJobs',
       populate: [
-        { path: 'employerId', select: 'companyName logoUrl location' },
+        { 
+          path: 'employerId', 
+          select: 'companyName logoUrl location userId',
+          populate: {
+            path: 'userId',
+            select: 'name'
+          }
+        },
         { path: 'categoryId', select: 'name slug' }
       ]
     });
@@ -178,6 +185,7 @@ exports.getSavedJobs = async (req, res, next) => {
       const plain = j.toObject ? j.toObject() : j;
       return {
         ...plain,
+        employerName: plain.employerId?.userId?.name || '',
         companyName: plain.companyName || plain.employerId?.companyName || 'Company',
         category: plain.category || plain.categoryId?.name || 'General',
         jobType: plain.jobType || 'Full-time',

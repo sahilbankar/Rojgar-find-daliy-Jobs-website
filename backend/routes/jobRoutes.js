@@ -24,7 +24,23 @@ router.use('/:jobId/applications', applicationRouter);
 // Public: Get all categories (used by Post a Job form)
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await Category.find().sort('name');
+    let categories = await Category.find().sort('name');
+    if (categories.length === 0) {
+      const defaults = [
+        { name: 'Information Technology', slug: 'information-technology' },
+        { name: 'Healthcare', slug: 'healthcare' },
+        { name: 'Trades & Technical', slug: 'trades-technical' },
+        { name: 'Logistics & Driver', slug: 'logistics-driver' },
+        { name: 'Office & Professional', slug: 'office-professional' },
+        { name: 'Education', slug: 'education' },
+        { name: 'Hospitality', slug: 'hospitality' },
+        { name: 'Manufacturing', slug: 'manufacturing' },
+        { name: 'Retail & Sales', slug: 'retail-sales' },
+        { name: 'Other', slug: 'other' }
+      ];
+      await Category.insertMany(defaults);
+      categories = await Category.find().sort('name');
+    }
     res.status(200).json({ success: true, data: categories });
   } catch (err) {
     res.status(500).json({ message: err.message });

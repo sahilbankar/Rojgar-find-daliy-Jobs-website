@@ -84,7 +84,11 @@ exports.getMyApplications = async (req, res, next) => {
         select: 'title location salaryRange employerId companyName salaryMin salaryMax category jobType',
         populate: {
           path: 'employerId',
-          select: 'companyName logoUrl'
+          select: 'companyName logoUrl userId',
+          populate: {
+            path: 'userId',
+            select: 'name'
+          }
         }
       })
       .sort('-createdAt');

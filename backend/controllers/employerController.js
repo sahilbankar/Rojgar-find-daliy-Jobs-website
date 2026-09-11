@@ -194,3 +194,22 @@ exports.getEmployerApplicants = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Get employer profile by ID
+// @route   GET /api/employers/:id
+exports.getEmployerById = async (req, res, next) => {
+  try {
+    const employer = await Employer.findById(req.params.id).populate('userId', 'name email');
+    if (!employer) {
+      return res.status(404).json({ message: 'Employer not found' });
+    }
+    res.status(200).json({
+      success: true,
+      data: employer
+    });
+  } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Employer not found' });
+    }
+    next(error);
+  }
+};

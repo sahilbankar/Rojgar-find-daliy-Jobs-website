@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Briefcase, Lock, Mail, ArrowRight, AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { authAPI } from '../services/auth';
+import { authAPI } from '../services/auth.service';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
